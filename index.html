@@ -68,7 +68,6 @@ input:focus { border-color: var(--accent); }
 }
 .sec-head::after { content: ''; flex: 1; height: 1px; background: var(--border); }
 
-/* ACTIVITY CARD */
 .act {
   background: var(--card); border: 1px solid var(--border); border-radius: var(--r);
   margin-bottom: 7px; overflow: hidden; transition: border-color 0.2s, box-shadow 0.2s;
@@ -84,7 +83,6 @@ input:focus { border-color: var(--accent); }
   padding: 12px 14px;
 }
 
-/* Start/stop button */
 .ss-btn {
   width: 34px; height: 34px; border-radius: 50%; border: 1.5px solid var(--border2);
   background: var(--card2); color: var(--text2); cursor: pointer;
@@ -98,7 +96,6 @@ input:focus { border-color: var(--accent); }
 .act-name { font-size: 13px; font-weight: 500; color: var(--text); line-height: 1.3; flex: 1; }
 .act.running .act-name { color: var(--green); }
 
-/* Timer */
 .timer {
   font-family: var(--mono); font-size: 18px; font-weight: 700; color: var(--text3);
   min-width: 72px; text-align: right; letter-spacing: 0.04em; flex-shrink: 0;
@@ -106,7 +103,6 @@ input:focus { border-color: var(--accent); }
 .act.running .timer { color: var(--green); }
 .act.done .timer { color: var(--text); }
 
-/* Notes toggle */
 .notes-tog {
   font-size: 14px; color: var(--text3); cursor: pointer;
   padding: 6px; border-radius: 4px; transition: color 0.15s;
@@ -115,7 +111,6 @@ input:focus { border-color: var(--accent); }
 .notes-tog:hover { color: var(--accent); }
 .notes-tog.active { color: var(--accent); }
 
-/* Notes body */
 .act-body { overflow: hidden; max-height: 0; transition: max-height 0.22s ease; }
 .act-body.open { max-height: 200px; }
 .act-notes { padding: 0 14px 12px 60px; }
@@ -126,7 +121,6 @@ textarea {
 }
 textarea:focus { border-color: var(--accent); }
 
-/* Totals */
 .total-bar {
   background: var(--card2); border: 1px solid var(--border); border-radius: var(--r);
   padding: 10px 14px; margin-top: 14px; display: flex; justify-content: space-between; align-items: center;
@@ -134,14 +128,12 @@ textarea:focus { border-color: var(--accent); }
 .total-lbl { font-family: var(--mono); font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.1em; }
 .total-val { font-family: var(--mono); font-size: 18px; font-weight: 700; color: var(--yellow); }
 
-/* Status */
 .status { font-family: var(--mono); font-size: 11px; padding: 10px 14px; border-radius: var(--r); margin-top: 12px; display: none; }
 .status.show { display: block; }
 .status.ok   { background: var(--green-glow); border: 1px solid rgba(61,214,140,0.3); color: var(--green); }
 .status.err  { background: rgba(247,107,107,0.1); border: 1px solid rgba(247,107,107,0.3); color: var(--red); }
 .status.wait { background: var(--accent-glow); border: 1px solid rgba(91,156,246,0.3); color: var(--accent); }
 
-/* Bottom bar */
 .bot {
   position: fixed; bottom: 0; left: 0; right: 0;
   background: var(--card); border-top: 1px solid var(--border);
@@ -194,9 +186,8 @@ textarea:focus { border-color: var(--accent); }
     <div class="fl">Google Spreadsheet ID</div>
     <div class="setup-row">
       <input type="text" id="sheetId" placeholder="Spreadsheet ID..." />
-      <button class="btn-sm" onclick="window.open('https://docs.google.com/spreadsheets/','_blank')">Ava Sheets</button>
+      <button class="btn-sm" onclick="window.open('https://docs.google.com/spreadsheets/d/1Da94lnkmZcqxLhXQI2hNlHtit2Qv33YOl23QyLDWb1s/edit','_blank')">Ava Sheet</button>
     </div>
-    <div class="hint">URL-ist: ...spreadsheets/d/<span style="color:var(--accent)">SIIA_ID</span>/edit</div>
   </div>
 
   <div class="meta-row">
@@ -225,11 +216,10 @@ textarea:focus { border-color: var(--accent); }
   <div class="status" id="statusEl"></div>
 
   <div class="setup-info">
-    <div style="color:var(--accent);margin-bottom:6px;font-size:11px;">&#9881; SEADISTUS (ühekordne)</div>
-    1. <a href="https://console.cloud.google.com/" target="_blank">Google Cloud Console</a> &rarr; Loo projekt &rarr; Luba <b>Google Sheets API</b><br>
-    2. Credentials &rarr; loo <b>API Key</b> &rarr; kopeeri &rarr; API_KEY reale koodis<br>
-    3. Credentials &rarr; loo <b>OAuth 2.0 Client ID</b> (Web) &rarr; Lisa faili URL authorized origins alla &rarr; CLIENT_ID reale<br>
-    4. Salvesta fail &rarr; ava brauseris &rarr; klõpsa <b>Ühenda</b>
+    <div style="color:var(--accent);margin-bottom:6px;font-size:11px;">&#9881; Järgmine samm — OAuth Client ID</div>
+    Google Cloud Console &rarr; Credentials &rarr; <b>OAuth 2.0 Client ID</b> &rarr; Web application<br>
+    Authorized JavaScript origins: <span style="color:var(--accent)">http://127.0.0.1:5500</span> (Live Server)<br>
+    Kopeeri Client ID &rarr; lisa CLIENT_ID reale selles failis
   </div>
 
 </div>
@@ -240,8 +230,8 @@ textarea:focus { border-color: var(--accent); }
 </div>
 
 <script>
-const CLIENT_ID = '';
-const API_KEY   = '';
+const CLIENT_ID = '';   // <- Lisa OAuth Client ID siia
+const API_KEY   = 'AIzaSyCh2awUXO8RKoug_vOdE66x3GVF3uopH5s';
 const SHEET_ID  = '1Da94lnkmZcqxLhXQI2hNlHtit2Qv33YOl23QyLDWb1s';
 const SCOPES    = 'https://www.googleapis.com/auth/spreadsheets';
 const DISC_DOC  = 'https://sheets.googleapis.com/$discovery/rest?version=v4';
@@ -269,53 +259,36 @@ function buildUI() {
   c.innerHTML = '';
   ACTS.forEach(function(a) {
     var card = document.createElement('div');
-    card.className = 'act';
-    card.id = 'act_' + a.id;
+    card.className = 'act'; card.id = 'act_' + a.id;
 
     var head = document.createElement('div');
     head.className = 'act-head';
 
     var btn = document.createElement('button');
-    btn.className = 'ss-btn';
-    btn.id = 'btn_' + a.id;
+    btn.className = 'ss-btn'; btn.id = 'btn_' + a.id;
     btn.innerHTML = svgPlay();
     btn.onclick = (function(id){ return function(){ toggle(id); }; })(a.id);
 
     var nameEl = document.createElement('span');
-    nameEl.className = 'act-name';
-    nameEl.textContent = a.name;
+    nameEl.className = 'act-name'; nameEl.textContent = a.name;
 
     var timerEl = document.createElement('div');
-    timerEl.className = 'timer';
-    timerEl.id = 't_' + a.id;
-    timerEl.textContent = '00:00';
+    timerEl.className = 'timer'; timerEl.id = 't_' + a.id; timerEl.textContent = '00:00';
 
     var tog = document.createElement('span');
-    tog.className = 'notes-tog';
-    tog.title = 'Märkused';
-    tog.textContent = '✎';
+    tog.className = 'notes-tog'; tog.title = 'Märkused'; tog.textContent = '✎';
     tog.onclick = (function(id){ return function(){ toggleNotes(id); }; })(a.id);
 
-    head.appendChild(btn);
-    head.appendChild(nameEl);
-    head.appendChild(timerEl);
-    head.appendChild(tog);
+    head.appendChild(btn); head.appendChild(nameEl); head.appendChild(timerEl); head.appendChild(tog);
     card.appendChild(head);
 
     var body = document.createElement('div');
-    body.className = 'act-body';
-    body.id = 'body_' + a.id;
-    var wrap = document.createElement('div');
-    wrap.className = 'act-notes';
+    body.className = 'act-body'; body.id = 'body_' + a.id;
+    var wrap = document.createElement('div'); wrap.className = 'act-notes';
     var ta = document.createElement('textarea');
-    ta.id = 'n_' + a.id;
-    ta.placeholder = 'Märkused...';
-    ta.rows = 2;
+    ta.id = 'n_' + a.id; ta.placeholder = 'Märkused...'; ta.rows = 2;
     ta.oninput = (function(id){ return function(){ S[id].notes = this.value; }; })(a.id);
-    wrap.appendChild(ta);
-    body.appendChild(wrap);
-    card.appendChild(body);
-
+    wrap.appendChild(ta); body.appendChild(wrap); card.appendChild(body);
     c.appendChild(card);
   });
 }
@@ -346,8 +319,7 @@ function stopTimer(id) {
   s.endWall = wall();
   document.getElementById('act_' + id).className = 'act done';
   document.getElementById('btn_' + id).innerHTML = svgPlay();
-  renderTimer(id);
-  updateTotal();
+  renderTimer(id); updateTotal();
 }
 
 function ensureTick() {
@@ -371,15 +343,10 @@ function updateTotal() {
   var tot = ACTS.reduce(function(s, a) { return s + S[a.id].elapsed; }, 0);
   document.getElementById('totalTime').textContent = fmtHH(tot);
 }
-
-function fmtMM(s) {
-  var m = Math.floor(s/60), se = s%60;
-  if (m >= 60) { var h = Math.floor(m/60); return p(h)+':'+p(m%60)+':'+p(se); }
-  return p(m)+':'+p(se);
-}
+function fmtMM(s) { var m=Math.floor(s/60),se=s%60; if(m>=60){var h=Math.floor(m/60);return p(h)+':'+p(m%60)+':'+p(se);} return p(m)+':'+p(se); }
 function fmtHH(s) { return p(Math.floor(s/3600))+':'+p(Math.floor((s%3600)/60))+':'+p(s%60); }
 function p(n) { return String(n).padStart(2,'0'); }
-function wall() { var d = new Date(); return p(d.getHours())+':'+p(d.getMinutes()); }
+function wall() { var d=new Date(); return p(d.getHours())+':'+p(d.getMinutes()); }
 
 function toggleNotes(id) {
   var body = document.getElementById('body_' + id);
@@ -392,16 +359,15 @@ function toggleNotes(id) {
 function resetAll() {
   if (!confirm('Nulli kõik ajad?')) return;
   ACTS.forEach(function(a) {
-    var s = S[a.id];
-    s.running=false; s.elapsed=0; s.startTs=null; s.startWall=null; s.endWall=null; s.notes='';
-    document.getElementById('act_'+a.id).className = 'act';
-    document.getElementById('btn_'+a.id).innerHTML = svgPlay();
-    document.getElementById('t_'+a.id).textContent = '00:00';
-    document.getElementById('n_'+a.id).value = '';
+    var s=S[a.id]; s.running=false; s.elapsed=0; s.startTs=null; s.startWall=null; s.endWall=null; s.notes='';
+    document.getElementById('act_'+a.id).className='act';
+    document.getElementById('btn_'+a.id).innerHTML=svgPlay();
+    document.getElementById('t_'+a.id).textContent='00:00';
+    document.getElementById('n_'+a.id).value='';
     document.getElementById('body_'+a.id).classList.remove('open');
     document.querySelector('#act_'+a.id+' .notes-tog').classList.remove('active');
   });
-  if (tick) { clearInterval(tick); tick = null; }
+  if (tick){clearInterval(tick);tick=null;}
   updateTotal(); hideStatus();
 }
 
@@ -424,13 +390,13 @@ function gisLoaded() {
   checkCreds();
 }
 function checkCreds() {
-  if (!CLIENT_ID || !API_KEY) {
-    showStatus('⚠️ CLIENT_ID ja API_KEY puuduvad — ava HTML tekstiredaktoris ja täida.', 'err');
+  if (!CLIENT_ID) {
+    showStatus('⚠️ CLIENT_ID puudub — lisa OAuth Client ID faili (viimane samm!)', 'wait');
     document.getElementById('saveBtn').disabled = true;
   }
 }
 function handleAuth() {
-  if (!CLIENT_ID || !API_KEY) { checkCreds(); return; }
+  if (!CLIENT_ID) { checkCreds(); return; }
   if (!authed) {
     tokenClient.requestAccessToken({ prompt: 'consent' });
   } else {
@@ -486,23 +452,20 @@ async function saveToSheets() {
   }
 }
 
-function showStatus(m, t) { var el = document.getElementById('statusEl'); el.textContent = m; el.className = 'status show ' + t; }
-function hideStatus() { document.getElementById('statusEl').className = 'status'; }
+function showStatus(m, t) { var el=document.getElementById('statusEl'); el.textContent=m; el.className='status show '+t; }
+function hideStatus() { document.getElementById('statusEl').className='status'; }
 
 function tickClock() {
   var d = new Date();
   document.getElementById('wallclock').textContent =
-    d.toLocaleDateString('et-EE', { weekday:'short', day:'numeric', month:'numeric' }) +
-    ' ' + p(d.getHours()) + ':' + p(d.getMinutes()) + ':' + p(d.getSeconds());
+    d.toLocaleDateString('et-EE',{weekday:'short',day:'numeric',month:'numeric'}) +
+    ' ' + p(d.getHours())+':'+p(d.getMinutes())+':'+p(d.getSeconds());
 }
 
 window.onload = function() {
   document.getElementById('date').value = new Date().toISOString().split('T')[0];
   document.getElementById('sheetId').value = SHEET_ID;
-  buildUI();
-  checkCreds();
-  tickClock();
-  setInterval(tickClock, 1000);
+  buildUI(); checkCreds(); tickClock(); setInterval(tickClock, 1000);
 };
 </script>
 
