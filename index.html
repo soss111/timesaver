@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="et">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tööaja Salvestaja</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap');
+
+:root {
+  --bg: #111214;
+  --card: #18191d;
+  --card2: #1f2024;
+  --border: #2a2b30;
+  --border2: #35363c;
+  --accent: #5b9cf6;
+  --accent-glow: rgba(91,156,246,0.15);
+  --green: #3dd68c;
+  --green-glow: rgba(61,214,140,0.12);
+  --red: #f76b6b;
+  --yellow: #f5c842;
+  --text: #e2e4e9;
+  --text2: #9097a5;
+  --text3: #565c6b;
+  --mono: 'JetBrains Mono', monospace;
+  --sans: 'DM Sans', sans-serif;
+  --r: 8px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); font-family: var(--sans); min-height: 100vh; padding-bottom: 80px; }
+
+.topbar {
+  background: var(--card); border-bottom: 1px solid var(--border);
+  padding: 12px 20px; display: flex; align-items: center; justify-content: space-between;
+  position: sticky; top: 0; z-index: 100;
+}
+.logo { font-family: var(--mono); font-size: 12px; font-weight: 700; color: var(--accent); letter-spacing: 0.12em; text-transform: uppercase; }
+.clock { font-family: var(--mono); font-size: 13px; color: var(--text2); }
+
+.auth-btn {
+  display: flex; align-items: center; gap: 6px;
+  background: var(--card2); border: 1px solid var(--border2); color: var(--text2);
+  padding: 7px 13px; border-radius: 6px; font-family: var(--mono); font-size: 11px; cursor: pointer; transition: all 0.15s;
+}
+.auth-btn:hover { border-color: var(--accent); color: var(--accent); }
+.auth-btn.ok { border-color: var(--green); color: var(--green); background: var(--green-glow); }
+.auth-btn svg { width: 13px; height: 13px; flex-shrink: 0; }
+
+.main { max-width: 700px; margin: 0 auto; padding: 20px 16px; }
+
+.setup-box { background: var(--card); border: 1px solid var(--border); border-radius: var(--r); padding: 14px; margin-bottom: 16px; }
+.fl { font-family: var(--mono); font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 5px; }
+.setup-row { display: grid; grid-template-columns: 1fr auto; gap: 8px; }
+.hint { font-family: var(--mono); font-size: 10px; color: var(--text3); margin-top: 5px; }
+
+input[type="date"], input[type="text"] {
+  width: 100%; background: var(--card); border: 1px solid var(--border); color: var(--text);
+  padding: 9px 12px; border-radius: var(--r); font-family: var(--mono); font-size: 12px; outline: none;
+  transition: border-color 0.15s; color-scheme: dark;
+}
+input:focus { border-color: var(--accent); }
+
+.meta-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+.field { margin-bottom: 10px; }
+
+.sec-head {
+  font-family: var(--mono); font-size: 10px; color: var(--text3); text-transform: uppercase;
+  letter-spacing: 0.15em; padding: 18px 0 8px; display: flex; align-items: center; gap: 8px;
+}
+.sec-head::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+/* ── ACTIVITY CARD ── */
+.act {
+  background: var(--card); border: 1px solid var(--border); border-radius: var(--r);
+  margin-bottom: 7px; overflow: hidden; transition: border-color 0.2s, box-shadow 0.2s;
+}
+.act.running {
+  border-color: var(--green);
+  box-shadow: 0 0 0 1px rgba(61,214,140,0.1), inset 0 0 28px rgba(61,214,140,0.06);
+}
+.act.done { border-color: var(--border2); }
+
+.act-head {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 12px; user-select: none;
+}
+
+.act-name { font-size: 13px; font-weight: 500; flex: 1; color: var(--text); line-height: 1.3; }
+.act.running .act-name { color: var(--green); }
+
+/* start/stop button */
+.ss-btn {
+  width: 32px; height: 32px; border-radius: 50%; border: 1.5px solid var(--border2);
+  background: var(--card2); color: var(--text2); cursor: pointer; display: flex;
+  align-items: center; justify-content: center; transition: all 0.15s; flex-shrink: 0;
+}
+.ss-btn:hover { border-color: var(--green); color: var(--green); background: var(--green-glow); }
+.act.running .ss-btn { background: var(--red); border-color: var(--red); color: #fff; }
+.ss-btn svg { width: 12px; height: 12px; pointer-events: none; }
+
+/* timer */
+.timer {
+  font-family: var(--mono); font-size: 17px; font-weight: 700; color: var(--text3);
+  min-width: 68px; text-align: right; letter-spacing: 0.04em; transition: color 0.2s;
+}
+.act.running .timer { color: var(--green); }
+.act.done .timer { color: var(--text); }
+
+/* timestamps */
+.stamps { display: flex; gap: 5px; align-items: center; }
+.chip {
+  font-family: var(--mono); font-size: 10px; color: var(--text3); background: var(--card2);
+  padding: 3px 7px; border-radius: 4px; border: 1px solid var(--border); white-space: nowrap;
+}
+.chip.set { color: var(--text2); border-color: var(--border2); }
+.arrow { font-size: 10px; color: var(--text3); }
+
+/* notes */
+.act-body { overflow: hidden; max-height: 0; transition: max-height 0.2s ease; }
+.act-body.open { max-height: 160px; }
+.act-notes { padding: 0 12px 11px; }
+textarea {
+  width: 100%; background: var(--card2); border: 1px solid var(--border); color: var(--text);
+  padding: 8px 11px; border-radius: 6px; font-family: var(--sans); font-size: 12px;
+  line-height: 1.5; resize: none; outline: none; min-height: 52px; transition: border-color 0.15s;
+}
+textarea:focus { border-color: var(--accent); }
+.notes-tog {
+  font-family: var(--mono); font-size: 10px; color: var(--text3); cursor: pointer;
+  padding: 4px 6px; border-radius: 4px; transition: color 0.15s; user-select: none; flex-shrink: 0;
+}
+.notes-tog:hover { color: var(--accent); }
+
+/* totals */
+.total-bar {
+  background: var(--card2); border: 1px solid var(--border); border-radius: var(--r);
+  padding: 10px 14px; margin-top: 14px; display: flex; justify-content: space-between; align-items: center;
+}
+.total-lbl { font-family: var(--mono); font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.1em; }
+.total-val { font-family: var(--mono); font-size: 18px; font-weight: 700; color: var(--yellow); }
+
+/* status */
+.status { font-family: var(--mono); font-size: 11px; padding: 10px 14px; border-radius: var(--r); margin-top: 12px; display: none; }
+.status.show { display: block; }
+.status.ok  { background: var(--green-glow); border: 1px solid rgba(61,214,140,0.3); color: var(--green); }
+.status.err { background: rgba(247,107,107,0.1); border: 1px solid rgba(247,107,107,0.3); color: var(--red); }
+.status.wait{ background: var(--accent-glow); border: 1px solid rgba(91,156,246,0.3); color: var(--accent); }
+
+/* bottom bar */
+.bot {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  background: var(--card); border-top: 1px solid var(--border);
+  padding: 12px 20px; display: flex; gap: 10px; align-items: center; justify-content: center;
+}
+.btn-save {
+  flex: 1; max-width: 340px; background: var(--accent); color: #fff; border: none;
+  padding: 12px 20px; border-radius: var(--r); font-family: var(--mono); font-size: 12px;
+  font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer; transition: all 0.15s;
+}
+.btn-save:hover { background: #4a8de8; }
+.btn-save:disabled { opacity: 0.35; cursor: not-allowed; }
+.btn-reset {
+  background: transparent; border: 1px solid var(--border2); color: var(--text3);
+  padding: 12px 16px; border-radius: var(--r); font-family: var(--mono); font-size: 11px; cursor: pointer; transition: all 0.15s;
+}
+.btn-reset:hover { border-color: var(--red); color: var(--red); }
+.btn-sm {
+  background: var(--card2); border: 1px solid var(--border2); color: var(--text2);
+  padding: 9px 12px; border-radius: 6px; font-family: var(--mono); font-size: 10px;
+  cursor: pointer; white-space: nowrap; transition: all 0.15s;
+}
+.btn-sm:hover { border-color: var(--accent); color: var(--accent); }
+
+/* setup instructions */
+.setup-info {
+  background: var(--card); border: 1px solid var(--border); border-radius: var(--r);
+  padding: 14px; font-family: var(--mono); font-size: 10px; color: var(--text3);
+  line-height: 2; margin-top: 16px;
+}
+.setup-info a { color: var(--accent); }
+
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.55} }
+.act.running .timer { animation: pulse 1.6s ease-in-out infinite; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="logo">⏱ Tööaja Log</div>
+  <div id="wallclock" class="clock"></div>
+  <button class="auth-btn" id="authBtn" onclick="handleAuth()">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+    Ühenda
+  </button>
+</div>
+
+<div class="main">
+
+  <!-- Sheet ID -->
+  <div class="setup-box">
+    <div class="fl">Google Spreadsheet ID</div>
+    <div class="setup-row">
+      <input type="text" id="sheetId" placeholder="Kopeeri Spreadsheet ID siia..." />
+      <button class="btn-sm" onclick="window.open('https://docs.google.com/spreadsheets/','_blank')">Ava Sheets</button>
+    </div>
+    <div class="hint">URL-ist: ...spreadsheets/d/<span style="color:var(--accent)">SIIA_ID</span>/edit</div>
+  </div>
+
+  <!-- Meta -->
+  <div class="meta-row">
+    <div class="field">
+      <div class="fl">Kuupäev</div>
+      <input type="date" id="date" />
+    </div>
+    <div class="field">
+      <div class="fl">Operaator / Masin</div>
+      <input type="text" id="operator" placeholder="nt. Jaan / CNC-01" />
+    </div>
+  </div>
+  <div class="field">
+    <div class="fl">Töö / Detaili kirjeldus</div>
+    <input type="text" id="jobDesc" placeholder="nt. Detaili nr 4471 freesimine" />
+  </div>
+
+  <!-- Activities -->
+  <div class="sec-head">Tegevused</div>
+  <div id="actsContainer"></div>
+
+  <!-- Total -->
+  <div class="total-bar">
+    <span class="total-lbl">Kogu aeg</span>
+    <span class="total-val" id="totalTime">00:00:00</span>
+  </div>
+
+  <div class="status" id="statusEl"></div>
+
+  <!-- Setup info -->
+  <div class="setup-info">
+    <div style="color:var(--accent);margin-bottom:6px;font-size:11px;">⚙ SEADISTUS (üks kord)</div>
+    1. <a href="https://console.cloud.google.com/" target="_blank">Google Cloud Console</a> → Loo projekt → Luba <b>Google Sheets API</b><br>
+    2. Credentials → loo <b>API Key</b> → kopeeri → API_KEY reale koodis<br>
+    3. Credentials → loo <b>OAuth 2.0 Client ID</b> (Web) → Lisa faili URL authorized origins alla → kopeeri → CLIENT_ID reale<br>
+    4. Google Sheets URL-ist kopeeri Spreadsheet ID → kleebi üles väljale<br>
+    5. Salvesta fail → ava brauseris → klõpsa <b>Ühenda</b>
+  </div>
+
+</div>
+
+<div class="bot">
+  <button class="btn-reset" onclick="resetAll()">Nulli</button>
+  <button class="btn-save" id="saveBtn" onclick="saveToSheets()">💾 Salvesta tabelisse</button>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════
+//  FILL THESE IN — open this file in a text editor
+// ═══════════════════════════════════════════════════
+const CLIENT_ID = '';   // ← OAuth 2.0 Client ID
+const API_KEY   = '';   // ← API Key
+// ═══════════════════════════════════════════════════
+
+const SCOPES   = 'https://www.googleapis.com/auth/spreadsheets';
+const DISC_DOC = 'https://sheets.googleapis.com/$discovery/rest?version=v4';
+
+const ACTS = [
+  { id:'prep',    name:'Ettevalmistus (tööriistad, materjal, puhastus)' },
+  { id:'zero',    name:'Nullpunktid, ofsetid' },
+  { id:'tools',   name:'Tööriistade sisestus / vahetus' },
+  { id:'first',   name:'Esimese detaili töötlemine' },
+  { id:'check',   name:'Esimese detaili kontroll' },
+  { id:'reSetup', name:'Kordus-seadistus (kui esines)' },
+  { id:'inline',  name:'Inline mõõtmised' },
+  { id:'report',  name:'Raporteerimine' },
+  { id:'breaks',  name:'Muud katkestused' },
+];
+
+const S = {};
+ACTS.forEach(a => { S[a.id] = { running:false, elapsed:0, startTs:null, startWall:null, endWall:null, notes:'' }; });
+
+let tick = null, gapiOk=false, gisOk=false, authed=false, tokenClient;
+
+// ── BUILD UI ────────────────────────────────────────
+function buildUI() {
+  const c = document.getElementById('actsContainer');
+  c.innerHTML = '';
+  ACTS.forEach(a => {
+    const d = document.createElement('div');
+    d.className = 'act'; d.id = 'act_'+a.id;
+    d.innerHTML =
+      `<div class="act-head">
+        <button class="ss-btn" id="btn_${a.id}" onclick="toggle('${a.id}')">${svgPlay()}</button>
+        <span class="act-name">${a.name}</span>
+        <div class="stamps">
+          <span class="chip" id="s_${a.id}">--:--</span>
+          <span class="arrow">→</span>
+          <span class="chip" id="e_${a.id}">--:--</span>
+        </div>
+        <div class="timer" id="t_${a.id}">00:00</div>
+        <span class="notes-tog" onclick="toggleNotes('${a.id}')" title="Märkused">✎</span>
+      </div>
+      <div class="act-body" id="body_${a.id}">
+        <div class="act-notes">
+          <textarea id="n_${a.id}" placeholder="Märkused..." rows="2" oninput="S['${a.id}'].notes=this.value"></textarea>
+        </div>
+      </div>`;
+    c.appendChild(d);
+  });
+}
+
+const svgPlay = () => `<svg viewBox="0 0 24 24" fill="currentColor"><polygon points="6,3 20,12 6,21"/></svg>`;
+const svgStop = () => `<svg viewBox="0 0 24 24" fill="currentColor"><rect x="4" y="4" width="16" height="16" rx="2"/></svg>`;
+
+// ── TIMER ───────────────────────────────────────────
+function toggle(id) {
+  const s = S[id];
+  if (!s.running) {
+    ACTS.forEach(a => { if (a.id!==id && S[a.id].running) stopTimer(a.id); });
+    s.running = true;
+    s.startTs = Date.now() - s.elapsed*1000;
+    s.startWall = wall();
+    document.getElementById('act_'+id).className = 'act running';
+    document.getElementById('btn_'+id).innerHTML = svgStop();
+    const el = document.getElementById('s_'+id);
+    el.textContent = s.startWall; el.classList.add('set');
+    ensureTick();
+  } else {
+    stopTimer(id);
+  }
+}
+
+function stopTimer(id) {
+  const s = S[id];
+  if (!s.running) return;
+  s.running = false;
+  s.elapsed = Math.floor((Date.now()-s.startTs)/1000);
+  s.endWall = wall();
+  document.getElementById('act_'+id).className = 'act done';
+  document.getElementById('btn_'+id).innerHTML = svgPlay();
+  const el = document.getElementById('e_'+id);
+  el.textContent = s.endWall; el.classList.add('set');
+  renderTimer(id);
+  updateTotal();
+}
+
+function ensureTick() {
+  if (tick) return;
+  tick = setInterval(() => {
+    let any = false;
+    ACTS.forEach(a => {
+      if (S[a.id].running) {
+        any = true;
+        S[a.id].elapsed = Math.floor((Date.now()-S[a.id].startTs)/1000);
+        renderTimer(a.id);
+      }
+    });
+    updateTotal();
+    if (!any) { clearInterval(tick); tick=null; }
+  }, 500);
+}
+
+function renderTimer(id) { document.getElementById('t_'+id).textContent = fmtMM(S[id].elapsed); }
+function updateTotal() {
+  const tot = ACTS.reduce((s,a)=>s+S[a.id].elapsed,0);
+  document.getElementById('totalTime').textContent = fmtHH(tot);
+}
+
+function fmtMM(s) { const m=Math.floor(s/60),se=s%60; return m>=60?`${p(Math.floor(m/60))}:${p(m%60)}:${p(se)}`:`${p(m)}:${p(se)}`; }
+function fmtHH(s) { return `${p(Math.floor(s/3600))}:${p(Math.floor((s%3600)/60))}:${p(s%60)}`; }
+function p(n) { return String(n).padStart(2,'0'); }
+function wall() { const d=new Date(); return `${p(d.getHours())}:${p(d.getMinutes())}`; }
+
+function toggleNotes(id) { document.getElementById('body_'+id).classList.toggle('open'); }
+
+// ── RESET ───────────────────────────────────────────
+function resetAll() {
+  if (!confirm('Nulli kõik ajad?')) return;
+  ACTS.forEach(a => {
+    const s=S[a.id]; s.running=false; s.elapsed=0; s.startTs=null; s.startWall=null; s.endWall=null;
+    document.getElementById('act_'+a.id).className='act';
+    document.getElementById('btn_'+a.id).innerHTML=svgPlay();
+    document.getElementById('t_'+a.id).textContent='00:00';
+    ['s_','e_'].forEach(pre=>{ const el=document.getElementById(pre+a.id); el.textContent='--:--'; el.classList.remove('set'); });
+    document.getElementById('n_'+a.id).value='';
+    document.getElementById('body_'+a.id).classList.remove('open');
+  });
+  if (tick){clearInterval(tick);tick=null;}
+  updateTotal(); hideStatus();
+}
+
+// ── AUTH ────────────────────────────────────────────
+function gapiLoaded() {
+  gapi.load('client', async()=>{
+    await gapi.client.init({apiKey:API_KEY, discoveryDocs:[DISC_DOC]});
+    gapiOk=true; checkCreds();
+  });
+}
+function gisLoaded() {
+  if (!CLIENT_ID) return;
+  tokenClient = google.accounts.oauth2.initTokenClient({
+    client_id: CLIENT_ID, scope: SCOPES,
+    callback: r => {
+      if (r.error){showStatus('Auth viga: '+r.error,'err');return;}
+      authed=true; setAuthBtn(true); showStatus('✓ Google Sheets ühendatud!','ok');
+    }
+  });
+  gisOk=true; checkCreds();
+}
+function checkCreds() {
+  if (!CLIENT_ID||!API_KEY) {
+    showStatus('⚠️ CLIENT_ID ja API_KEY puuduvad — ava HTML tekstiredaktoris ja täida.','err');
+    document.getElementById('saveBtn').disabled=true;
+  }
+}
+function handleAuth() {
+  if (!CLIENT_ID||!API_KEY){checkCreds();return;}
+  if (!authed) { tokenClient.requestAccessToken({prompt:'consent'}); }
+  else {
+    google.accounts.oauth2.revoke(gapi.client.getToken().access_token);
+    gapi.client.setToken(''); authed=false; setAuthBtn(false);
+    showStatus('Drive ühendus katkestatud.','err');
+  }
+}
+function setAuthBtn(ok) {
+  const b=document.getElementById('authBtn');
+  if(ok){
+    b.className='auth-btn ok';
+    b.innerHTML=`<svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg> Ühendatud`;
+  } else {
+    b.className='auth-btn';
+    b.innerHTML=`<svg viewBox="0 0 24 24" fill="currentColor"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg> Ühenda`;
+  }
+}
+
+// ── SAVE ────────────────────────────────────────────
+async function saveToSheets() {
+  if (!authed){handleAuth();return;}
+  const sheetId = document.getElementById('sheetId').value.trim();
+  if (!sheetId){showStatus('⚠️ Sisesta Spreadsheet ID.','err');return;}
+
+  ACTS.forEach(a=>{ if(S[a.id].running) stopTimer(a.id); });
+
+  const date     = document.getElementById('date').value;
+  const operator = document.getElementById('operator').value.trim();
+  const job      = document.getElementById('jobDesc').value.trim();
+  const ts       = new Date().toLocaleString('et-EE');
+
+  // One row per activity
+  // Cols: Kuupäev | Operaator | Töö | Tegevus | Algus | Lõpp | min | hh:mm:ss | Märkused | Salvestatud
+  const rows = ACTS.map(a => {
+    const s=S[a.id];
+    return [date, operator, job, a.name, s.startWall||'', s.endWall||'', s.elapsed>0?(s.elapsed/60).toFixed(2):'0', fmtHH(s.elapsed), s.notes, ts];
+  });
+
+  showStatus('⏳ Salvestamine...','wait');
+  try {
+    // Check/add header
+    const hRes = await gapi.client.sheets.spreadsheets.values.get({spreadsheetId:sheetId, range:'A1:J1'});
+    const existing = hRes.result.values;
+    let appendRows = rows;
+    if (!existing||!existing.length||existing[0][0]!=='Kuupäev') {
+      appendRows = [['Kuupäev','Operaator','Töö kirjeldus','Tegevus','Algus','Lõpp','Kestus (min)','Kestus (hh:mm:ss)','Märkused','Salvestatud'], ...rows];
+    }
+
+    await gapi.client.sheets.spreadsheets.values.append({
+      spreadsheetId: sheetId,
+      range: 'A1',
+      valueInputOption: 'USER_ENTERED',
+      insertDataOption: 'INSERT_ROWS',
+      resource: { values: appendRows }
+    });
+    showStatus(`✓ ${rows.length} rida salvestatud — ${ts}`, 'ok');
+  } catch(e) {
+    showStatus('❌ Viga: '+(e.result?.error?.message||e.message||JSON.stringify(e)),'err');
+  }
+}
+
+// ── STATUS ──────────────────────────────────────────
+function showStatus(m,t){const el=document.getElementById('statusEl');el.textContent=m;el.className='status show '+t;}
+function hideStatus(){document.getElementById('statusEl').className='status';}
+
+// ── WALL CLOCK ──────────────────────────────────────
+function tickClock(){
+  const d=new Date();
+  document.getElementById('wallclock').textContent=
+    d.toLocaleDateString('et-EE',{weekday:'short',day:'numeric',month:'numeric'})
+    +' '+p(d.getHours())+':'+p(d.getMinutes())+':'+p(d.getSeconds());
+}
+
+// ── INIT ────────────────────────────────────────────
+window.onload = () => {
+  document.getElementById('date').value = new Date().toISOString().split('T')[0];
+  const sid = localStorage.getItem('ts_sid');
+  if (sid) document.getElementById('sheetId').value = sid;
+  document.getElementById('sheetId').addEventListener('input', e => localStorage.setItem('ts_sid', e.target.value.trim()));
+  buildUI();
+  checkCreds();
+  tickClock();
+  setInterval(tickClock, 1000);
+};
+</script>
+
+<script async defer src="https://apis.google.com/js/api.js" onload="gapiLoaded()"></script>
+<script async defer src="https://accounts.google.com/gsi/client" onload="gisLoaded()"></script>
+</body>
+</html>
