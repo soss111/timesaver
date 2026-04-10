@@ -187,7 +187,7 @@ textarea:focus { border-color: var(--accent); }
 </div>
 
 <script>
-const WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbyiaw_njTQx6oEkR6PXByf3Gs2LyvTx86uksc5URlrxC8N-StOJJa4iMKtYtJxfipIR/exec';
+const WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbzQ1RrZTFkNW197WS93GEwfooVVTiR0US89zjFM4o3RYMawIIL5MfiLj7Q3FQJGhbq6/exec';
 
 const ACTS = [
   { id:'prep',    name:'Ettevalmistus (tööriistad, materjal, puhastus)' },
@@ -344,16 +344,12 @@ async function saveToSheets() {
   document.getElementById('saveBtn').disabled = true;
 
   try {
-    var res = await fetch(WEBAPP_URL, {
+    await fetch(WEBAPP_URL, {
       method: 'POST',
+      mode: 'no-cors',
       body: JSON.stringify({ rows: rows }),
     });
-    var json = await res.json();
-    if (json.status === 'ok') {
-      showStatus('✓ ' + json.added + ' rida salvestatud — ' + ts, 'ok');
-    } else {
-      showStatus('❌ Viga: ' + JSON.stringify(json), 'err');
-    }
+    showStatus('✓ ' + rows.length + ' rida saadetud — ' + ts, 'ok');
   } catch(e) {
     showStatus('❌ Viga: ' + e.message, 'err');
   }
